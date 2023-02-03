@@ -1,4 +1,4 @@
 import { createApp } from 'vue'
-import BottleElement from "@/components/BottleElement";
+import App from "@/components/App";
 
-createApp(BottleElement).mount('#app')
+createApp(App).mount('#app')
