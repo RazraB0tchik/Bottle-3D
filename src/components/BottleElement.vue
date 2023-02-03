@@ -5,29 +5,94 @@
 
 <script>
 import "../css/StylesForApp.css";
-import {Color, PerspectiveCamera, Scene, WebGLRenderer} from "three";
+import {
+  AmbientLight,
+  Color,
+  DirectionalLight,
+  HemisphereLight,
+  MeshPhysicalMaterial,
+  PerspectiveCamera,
+  Scene,
+  WebGLRenderer
+} from "three";
+import {GLTFLoader} from "three/addons/loaders/GLTFLoader";
 
-// import {GLTFLoader} from "three/addons/loaders/GLTFLoader";
 export default {
   name: "BottleElement",
-  mounted: function (){
+
+  async mounted() {
   const container = document.querySelector(".main_class");
   const scene = new Scene();
-  scene.background = new Color("black");
-
-  const fov = 35;
+  scene.background = new Color("white");
+  const fov = 15;
   const aspect = container.clientWidth/container.clientHeight;
-  const near = 0.1;
+  const near = 1.1;
   const far = 100;
+  const light = new DirectionalLight('white', 1);
+  const ambient = new AmbientLight('pink', 1);
+  const hemisphere = new HemisphereLight('pink', 'darkslategrey', 0.5)
+
+    // const params = {
+    //   color: 0xffffff,
+    //   transmission: 1,
+    //   opacity: 1,
+    //   metalness: 0,
+    //   roughness: 0,
+    //   ior: 1.52,
+    //   thickness: 0.1,
+    //   specularIntensity: 1,
+    //   specularColor: 0xffffff,
+    //   lightIntensity: 1,
+    //   exposure: 1
+    // };
+
+    light.position.set(10, 10, 10);
+    scene.add(light, hemisphere, ambient);
+
+    const material = new MeshPhysicalMaterial( {
+      roughness: 0.1,
+      transmission: 1,
+      thickness: 1
+    } );
 
   const camera = new PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(0, 0, 10);
-
+  camera.position.set(0, 5, 100);
   const renderer = new WebGLRenderer();
+    let element = null;
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
-  container.append(renderer.domElement); //добавляем на страницу созданный элемент
-    renderer.render(scene, camera);
+    container.append(renderer
+        .domElement); //добавляем на страницу созданный элемент
+    const loader = new GLTFLoader();
+    loader.load("model/bottle_two_expotherOtherGroup.gltf", (gltf) => {
+      element = gltf.scene;
+      scene.add(element);
+      console.log(element);
+      console.log(element.children[2].material);
+      element.position.set(0, 0, 10);
+      element.children[2].material = material;
+      renderer.render(scene, camera);
+    });
+
+    function setSize() { //функция перерисовки canvas
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix(); //обновляем матрицу мира, тем самым меняем камеру
+
+      renderer.setSize(container.clientWidth, container.clientHeight); //обновим рендер (а именно канвас)
+    }
+
+    window.addEventListener("resize", () => {
+      setSize();
+      console.log(window.innerWidth);
+    })
+
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera); //говорим отобрази все что на сцене и добавь свет
+      element.rotation.y += 0.01;
+      // element.rotation.z += 0.03;
+    }
+    animate();
 }
 
 
